@@ -35,10 +35,20 @@ app.get('/api/info', (req, res) => {
     process.stdout.on('data', (data) => output += data.toString());
     process.stderr.on('data', (data) => errorOutput += data.toString());
 
+    process.on('error', (err) => {
+        console.error('Failed to start yt-dlp:', err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'System error: yt-dlp is not installed or not found on the server.' });
+        }
+    });
+
     process.on('close', (code) => {
         if (code !== 0) {
             console.error('yt-dlp error:', errorOutput);
-            return res.status(500).json({ error: 'Video extraction failed. The platform might be blocking the request or the link is invalid.' });
+            if (!res.headersSent) {
+                return res.status(500).json({ error: 'Video extraction failed. The platform might be blocking the request or the link is invalid.' });
+            }
+            return;
         }
         try {
             const info = JSON.parse(output);
@@ -49,7 +59,9 @@ app.get('/api/info', (req, res) => {
                 duration: info.duration
             });
         } catch (e) {
-            res.status(500).json({ error: 'Failed to parse video info.' });
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Failed to parse video info.' });
+            }
         }
     });
 });

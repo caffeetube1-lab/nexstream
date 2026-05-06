@@ -26,11 +26,13 @@ downloadBtn.addEventListener('click', async () => {
 
     try {
         const response = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
-        const data = await response.json();
-
-        if (data.error) {
-            throw new Error(data.error);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: `Server error (${response.status}). The link might be restricted or invalid.` }));
+            throw new Error(errorData.error || 'Failed to extract video info');
         }
+
+        const data = await response.json();
 
         // Show info
         thumbnail.src = data.thumbnail;
