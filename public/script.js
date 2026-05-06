@@ -26,13 +26,18 @@ downloadBtn.addEventListener('click', async () => {
 
     try {
         const response = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: `Server error (${response.status}). The link might be restricted or invalid.` }));
-            throw new Error(errorData.error || 'Failed to extract video info');
+        let data;
+
+        try {
+            const text = await response.text();
+            data = JSON.parse(text);
+        } catch (err) {
+            throw new Error('The server returned an invalid response. This usually means the deployment is still starting or yt-dlp is not ready.');
         }
 
-        const data = await response.json();
+        if (!response.ok || data.error) {
+            throw new Error(data.error || `Server error (${response.status})`);
+        }
 
         // Show info
         thumbnail.src = data.thumbnail;
