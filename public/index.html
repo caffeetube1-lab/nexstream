@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexStream | Universal Video Downloader</title>
+    <meta name="description" content="Download videos from any platform in perfect 4K/HD quality with NexStream. Fast, free, and secure.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <div class="glass-card">
+            <img src="logo.png" alt="NexStream Logo" style="width: 80px; height: 80px; margin-bottom: 1.5rem; border-radius: 20px; box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);">
+            <h1>NexStream</h1>
+            <p class="subtitle">Experience the ultimate video downloading platform. Fast, sleek, and perfect quality.</p>
+            
+            <div class="input-group">
+                <input type="text" id="videoUrl" placeholder="Paste video link here (YouTube, TikTok, Instagram, etc.)..." autocomplete="off">
+            </div>
+
+            <button id="downloadBtn" class="download-btn">
+                <span class="btn-text">Extract Video</span>
+                <div class="loader" id="loader"></div>
+            </button>
+
+            <div id="infoCard" class="info-card">
+                <img id="thumbnail" class="video-thumb" src="" alt="Thumbnail">
+                <h3 id="title" class="video-title"></h3>
+                <p id="author" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;"></p>
+                
+                <div id="formatSelector" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem;">Select Quality:</label>
+                    <select id="quality" style="width: 100%; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.8rem; border-radius: 8px;">
+                        <option value="highest">Highest Quality (Video + Audio)</option>
+                        <option value="1080p">Full HD (1080p)</option>
+                        <option value="720p">HD (720p)</option>
+                        <option value="highestaudio">Audio Only (MP3)</option>
+                    </select>
+                </div>
+
+                <button id="startDownload" class="download-btn" style="background: linear-gradient(135deg, #10b981, #3b82f6);">
+                    Download Now
+                </button>
+            </div>
+
+            <div id="statusContainer" class="status-container">
+                <p id="statusText">Processing your request...</p>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log
+yt-dlp.exe
+vidio downloads.zip
+*.log
+.DS_Store
+.git

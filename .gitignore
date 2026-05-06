@@ -1,0 +1,8 @@
+node_modules
+.env
+yt-dlp.exe
+vidio downloads.zip
+*.log
+npm-debug.log
+.DS_Store
+.gemini
