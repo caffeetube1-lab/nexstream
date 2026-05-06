@@ -11,6 +11,8 @@ const statusContainer = document.getElementById('statusContainer');
 const statusText = document.getElementById('statusText');
 const progressBar = document.getElementById('progressBar');
 
+let currentVideoData = null;
+
 downloadBtn.addEventListener('click', async () => {
     const url = videoUrlInput.value.trim();
     if (!url) {
@@ -39,6 +41,9 @@ downloadBtn.addEventListener('click', async () => {
             throw new Error(data.error || `Server error (${response.status})`);
         }
 
+        // Store data for download
+        currentVideoData = data;
+
         // Show info
         thumbnail.src = data.thumbnail;
         title.textContent = data.title;
@@ -54,38 +59,66 @@ downloadBtn.addEventListener('click', async () => {
     }
 });
 
-startDownloadBtn.addEventListener('click', () => {
+startDownloadBtn.addEventListener('click', async () => {
     const url = videoUrlInput.value.trim();
     const quality = document.getElementById('quality').value;
+    const videoTitle = title.textContent;
+    const videoSize = currentVideoData ? currentVideoData.size : 0;
     
     statusContainer.style.display = 'block';
-    statusText.textContent = 'Initializing download...';
+    statusText.textContent = 'Connecting to server...';
     progressBar.style.width = '0%';
+    startDownloadBtn.disabled = true;
 
-    // We'll use a direct link or a stream. 
-    // For simplicity in this demo, we'll trigger a window.location change to the download route
-    const videoTitle = title.textContent;
-    window.location.href = `/api/download?url=${encodeURIComponent(url)}&quality=${quality}&title=${encodeURIComponent(videoTitle)}`;
-    
-    // Simulate progress since we can't easily track stream progress in a simple window.location change
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += Math.random() * 10;
-        if (progress >= 95) {
-            progress = 95;
-            clearInterval(interval);
+    try {
+        const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&quality=${quality}&title=${encodeURIComponent(videoTitle)}&size=${videoSize}`;
+        const response = await fetch(downloadUrl);
+
+        if (!response.ok) throw new Error('Download failed to start');
+
+        const reader = response.body.getReader();
+        const contentLength = +response.headers.get('Content-Length');
+        
+        let receivedLength = 0;
+        let chunks = [];
+
+        while(true) {
+            const {done, value} = await reader.read();
+            if (done) break;
+
+            chunks.push(value);
+            receivedLength += value.length;
+
+            if (contentLength) {
+                const percent = Math.round((receivedLength / contentLength) * 100);
+                progressBar.style.width = `${percent}%`;
+                statusText.textContent = `Downloading... ${percent}% (${(receivedLength / 1024 / 1024).toFixed(1)} MB)`;
+            } else {
+                statusText.textContent = `Downloading... ${(receivedLength / 1024 / 1024).toFixed(1)} MB`;
+                progressBar.style.width = '50%'; // Indeterminate
+            }
         }
-        progressBar.style.width = `${progress}%`;
-        statusText.textContent = `Downloading... ${Math.round(progress)}%`;
-    }, 500);
 
-    // After a few seconds, reset
-    setTimeout(() => {
-        clearInterval(interval);
+        statusText.textContent = 'Finalizing file...';
+        const blob = new Blob(chunks);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = `${videoTitle}.${quality === 'highestaudio' ? 'mp3' : 'mp4'}`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
         progressBar.style.width = '100%';
-        statusText.textContent = 'Download started! Check your downloads folder.';
+        statusText.textContent = 'Download complete!';
+        
         setTimeout(() => {
             statusContainer.style.display = 'none';
+            startDownloadBtn.disabled = false;
         }, 5000);
-    }, 8000);
+
+    } catch (err) {
+        alert('Download error: ' + err.message);
+        statusContainer.style.display = 'none';
+        startDownloadBtn.disabled = false;
+    }
 });

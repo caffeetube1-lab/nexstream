@@ -56,7 +56,8 @@ app.get('/api/info', (req, res) => {
                 title: info.title,
                 thumbnail: info.thumbnail,
                 author: info.uploader,
-                duration: info.duration
+                duration: info.duration,
+                size: info.filesize || info.filesize_approx || 0
             });
         } catch (e) {
             if (!res.headersSent) {
@@ -75,12 +76,19 @@ app.get('/api/download', (req, res) => {
     let title = req.query.title || 'video';
     title = title.replace(/[^\w\s]/gi, '').substring(0, 100);
 
+    const size = req.query.size;
+    if (size && size > 0) {
+        res.header('Content-Length', size);
+    }
+
     let args = process.platform === 'win32' ? ['--cookies-from-browser', 'chrome'] : [];
     if (quality === 'highestaudio') {
         res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
+        res.header('Content-Type', 'audio/mpeg');
         args.push('-x', '--audio-format', 'mp3', '-o', '-', videoURL);
     } else {
         res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
+        res.header('Content-Type', 'video/mp4');
         args.push('-f', 'best[ext=mp4]/best', '-o', '-', videoURL);
     }
 
